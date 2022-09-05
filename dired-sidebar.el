@@ -312,6 +312,15 @@ For more information, look up `delete-other-windows'."
   :group 'dired-sidebar)
 
 
+(defcustom dired-sidebar-no-other-window nil
+  "Whether or not to add `no-other-window' parameter to window.
+
+If this is ture, dired-sidebar would not be presented when switch
+windows."
+  :type 'boolean
+  :group 'dired-sidebar)
+
+
 (defcustom dired-sidebar-use-one-instance nil
   "Only show one buffer instance for dired-sidebar for each frame."
   :type 'boolean
@@ -653,6 +662,8 @@ This is dependent on `dired-subtree-cycle'."
     (let ((window (get-buffer-window buffer)))
       (when dired-sidebar-no-delete-other-windows
         (set-window-parameter window 'no-delete-other-windows t))
+      (when dired-sidebar-no-other-window
+	(set-window-parameter window 'no-other-window t))
       (set-window-dedicated-p window t)
       (with-selected-window window
         (let ((window-size-fixed))
