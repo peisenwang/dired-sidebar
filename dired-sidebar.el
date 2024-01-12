@@ -106,8 +106,18 @@ This only takes effect if on a local connection. (e.g. Not Tramp)"
                  (const vscode)))
 
 (defcustom dired-sidebar-width 35
-  "Width of the `dired-sidebar' buffer."
+  "Width of the `dired-sidebar' buffer.
+This option does not have effect if `dired-sidebar-resize-on-open' is nil.
+If you set `dired-sidebar-resize-on-open' to nil, you can customize `dired-sidebar-display-alist'
+to control the width anyway."
   :type 'integer
+  :group 'dired-sidebar)
+
+(defcustom dired-sidebar-window-fixed 'width
+  "Whether the width or height of the sidebar window should be fixed (to prevent from resizing)."
+  :type '(choice (const nil)
+                 (const width)
+                 (const height))
   :group 'dired-sidebar)
 
 (defcustom dired-sidebar-refresh-on-project-switch t
@@ -258,6 +268,11 @@ with a prefix arg or when `dired-sidebar-find-file-alt' is called."
 
 (defcustom dired-sidebar-recenter-cursor-on-follow-file t
   "Whether or not to center cursor when pointing at file."
+  :type 'boolean
+  :group 'dired-sidebar)
+
+(defcustom dired-sidebar-resize-on-open t
+  "When dired sidebar window is showed, automatically adjust its width according to `dired-sidebar-width'"
   :type 'boolean
   :group 'dired-sidebar)
 
@@ -420,7 +435,7 @@ Works around marker pointing to wrong buffer in Emacs 25."
     (advice-add 'wdired-change-to-wdired-mode
                 :around 'dired-sidebar-wdired-change-to-wdired-mode-advice))
 
-  (setq window-size-fixed 'width)
+  (setq window-size-fixed dired-sidebar-window-fixed)
 
   ;; Match backgrounds.
   (setq-local dired-subtree-use-backgrounds nil)
@@ -665,9 +680,10 @@ This is dependent on `dired-subtree-cycle'."
       (when dired-sidebar-no-other-window
 	(set-window-parameter window 'no-other-window t))
       (set-window-dedicated-p window t)
-      (with-selected-window window
-        (let ((window-size-fixed))
-          (dired-sidebar-set-width dired-sidebar-width))))
+      (when dired-sidebar-resize-on-open
+        (with-selected-window window
+          (let ((window-size-fixed))
+            (dired-sidebar-set-width dired-sidebar-width)))))
     (with-current-buffer buffer
       (if (eq major-mode 'dired-sidebar-mode)
           (dired-build-subdir-alist)
@@ -1140,7 +1156,7 @@ after."
                         (if (dired-subtree--is-expanded-p)
                             (insert (concat collapsible-icon " "))
                           (insert (concat expandable-icon " ")))
-                      (insert "")))))))
+                      (insert (if (eq dired-sidebar-theme 'nerd) "  " ""))))))))
           (forward-line 1))))))
 
 (defun dired-sidebar-tui-update-with-delay (&rest _)
